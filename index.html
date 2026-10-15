@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10172a">
+<title>SamBinary Hub</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">SB <span>SamBinary <small>HUB</small></span></div>
+  <div>◈ <b id="coins">0</b> coins</div>
+</header>
+
+<main>
+<section id="login" class="login">
+  <div class="panel login-panel">
+    <div class="logo">SB</div>
+    <p class="eyebrow">PERSONAL WORKSPACE</p>
+    <h1>Welcome back.</h1>
+    <p class="muted">Your games, code and school tools.</p>
+    <form id="loginForm">
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Enter password" required>
+      <p id="loginError" class="error"></p>
+      <button class="primary full">Unlock workspace →</button>
+    </form>
+    <p class="tiny">This is a basic client-side lock, not secure authentication.</p>
+  </div>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="heading">
+    <div><p class="eyebrow">YOUR WORKSPACE</p><h1>What are we building?</h1></div>
+    <button id="logout" class="secondary">Lock</button>
+  </div>
+  <div class="cards">
+    <button class="card" data-open="games"><span>▦</span><h2>Games</h2><p>Six games, coins, scores and skins.</p></button>
+    <button class="card" data-open="presets"><span>⌘</span><h2>Code presets</h2><p>Save and copy your own code.</p></button>
+    <button class="card" data-open="tools"><span>◷</span><h2>School tools</h2><p>Study timer and scratchpad.</p></button>
+    <button class="card" data-open="planner"><span>✓</span><h2>Task planner</h2><p>Track assignments and goals.</p></button>
+  </div>
+</section>
+
+<section id="workspace" class="hidden">
+  <div class="heading">
+    <button id="back" class="secondary">← Hub</button>
+    <h1 id="pageTitle">Games</h1>
+    <span class="spacer"></span>
+    <span>◈ <b id="coins2">0</b></span>
+  </div>
+
+  <section id="gamesPage" class="page hidden">
+    <nav class="tabs">
+      <button data-tab="play" class="active">Play</button>
+      <button data-tab="shop">Shop & skins</button>
+      <button data-tab="stats">Stats</button>
+    </nav>
+    <div id="playTab">
+      <div class="game-layout">
+        <div class="panel">
+          <h2>Choose a game</h2>
+          <div id="gameList"></div>
+        </div>
+        <div class="panel">
+          <p class="eyebrow" id="gameCategory">ARCADE</p>
+          <h2 id="gameTitle">Choose a game</h2>
+          <p id="gameDescription" class="muted"></p>
+          <div id="gameArea" class="game-area">Choose a game to begin.</div>
+          <div class="actions">
+            <button id="startGame" class="primary">Start game</button>
+            <button id="resetGame" class="secondary">Reset</button>
+          </div>
+          <p id="gameMessage" class="muted"></p>
+        </div>
+      </div>
+    </div>
+    <div id="shopTab" class="hidden">
+      <h2>Skin shop</h2>
+      <p class="muted">Play games to earn coins and unlock skins.</p>
+      <div id="skinList" class="cards"></div>
+    </div>
+    <div id="statsTab" class="hidden panel">
+      <h2>Your stats</h2>
+      <p id="stats"></p>
+      <div id="records"></div>
+    </div>
+  </section>
+
+  <section id="presetsPage" class="page hidden">
+    <div class="panel">
+      <h2>Code presets</h2>
+      <p class="muted">Edit an empty slot, paste your code, and save. Copy it whenever you need it.</p>
+      <input id="presetSearch" placeholder="Search presets...">
+      <div id="presetList" class="preset-list"></div>
+    </div>
+    <div id="editor" class="panel hidden">
+      <h2 id="editorTitle">Edit preset</h2>
+      <label for="presetName">Title</label>
+      <input id="presetName" maxlength="70" placeholder="My C++ code">
+      <label for="presetLanguage">Language</label>
+      <select id="presetLanguage">
+        <option>C++</option><option>JavaScript</option><option>HTML</option>
+        <option>CSS</option><option>Python</option><option>Java</option><option>Other</option>
+      </select>
+      <label for="presetCode">Paste your code here</label>
+      <textarea id="presetCode" spellcheck="false" placeholder="Paste your code here..."></textarea>
+      <div class="actions">
+        <button id="savePreset" class="primary">Save preset</button>
+        <button id="cancelEdit" class="secondary">Cancel</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="toolsPage" class="page hidden">
+    <div class="two-columns">
+      <div class="panel">
+        <h2>Study timer</h2>
+        <div id="timerDisplay" class="timer">25:00</div>
+        <div class="actions">
+          <button data-minutes="5" class="secondary">5 min</button>
+          <button data-minutes="15" class="secondary">15 min</button>
+          <button data-minutes="25" class="secondary">25 min</button>
+          <button data-minutes="45" class="secondary">45 min</button>
+        </div>
+        <div class="actions">
+          <button id="timerStart" class="primary">Start</button>
+          <button id="timerReset" class="secondary">Reset</button>
+        </div>
+        <p id="timerMessage" class="muted"></p>
+      </div>
+      <div class="panel">
+        <h2>Scratchpad</h2>
+        <textarea id="scratchpad" placeholder="Notes, formulas, ideas..."></textarea>
+        <button id="clearScratch" class="secondary">Clear notes</button>
+        <p class="muted">Notes save automatically in this browser.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="plannerPage" class="page hidden">
+    <div class="panel">
+      <h2>Task planner</h2>
+      <form id="taskForm" class="actions">
+        <input id="taskInput" placeholder="Add an assignment or goal..." required>
+        <button class="primary">Add</button>
+      </form>
+      <p id="taskProgress" class="muted"></p>
+      <div id="taskList"></div>
+    </div>
+  </section>
+</section>
+</main>
+
+<footer>SamBinary Hub · Made for small screens</footer>
+<div id="toast" role="status"></div>
+<script src="script.js"></script>
+</body>
+</html>
