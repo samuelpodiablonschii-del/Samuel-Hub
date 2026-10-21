@@ -82,10 +82,11 @@ int main() {
     std::cout << &quot;Hello, world!&quot;;
     return 0;
 }"></textarea>
-            <div class="editor-bottom"><span> C++ · UTF-8</span><button id="run-code" class="primary-button">▶ Run code</button></div>
-            <div class="output-header"><strong>Output / console</strong><span>Editable console</span></div>
+            <div class="editor-bottom"><span> C++ · UTF-8</span><div class="editor-actions"><button id="export-draft" class="secondary-button">Export .cpp</button><button id="run-code" class="primary-button">▶ Compile &amp; run</button></div></div>
+            <label class="stdin-label" for="code-input">Program input (stdin)</label><textarea id="code-input" class="console-output stdin-input" spellcheck="false" aria-label="Program input" placeholder="Type input for cin here, if your program needs it."></textarea>
+            <div class="output-header"><strong>Output / console</strong><span id="compiler-status">Ready to compile</span></div>
             <textarea id="code-output" class="console-output" spellcheck="false" aria-label="Editable output console" placeholder="Program output will appear here. You can type in this box too."></textarea>
-            <p class="console-note" id="compiler-note">A real C++ compiler needs a backend or an external compiler service. This static Vercel version includes a safe demo runner for simple output statements.</p>
+            <p class="console-note" id="compiler-note">Online C++23 compiler. Code is sent to the external Wandbox compilation service when you press Compile &amp; run. Never paste passwords or private information into code.</p>
           </div>
         </div>
       </section>
@@ -99,6 +100,7 @@ int main() {
       <div id="toast" class="toast" role="status"></div>
     </main>
   </div>
+  <script src="compiler.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
