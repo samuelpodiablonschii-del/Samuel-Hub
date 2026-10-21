@@ -68,3 +68,96 @@
   .stats-grid, .feature-grid, .snippet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .game-layout { grid-template-columns: minmax(0, 1.5fr) minmax(180px, 1fr); gap: 12px; }
 }
+
+
+/* Mobile layout override: keep the sidebar from using desktop positioning */
+@media screen and (max-width: 640px) {
+  body { overflow-x: hidden; }
+  #app { display: block; width: 100%; min-width: 0; }
+  #app > .sidebar {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 8px 10px !important;
+    overflow-x: auto !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line) !important;
+    background: #15171d !important;
+    z-index: 5;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #app > .sidebar .wordmark,
+  #app > .sidebar .sidebar-label,
+  #app > .sidebar .sidebar-bottom { display: none !important; }
+  #app > .sidebar .nav-item {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+  }
+  #app > .main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 16px 32px !important;
+    overflow: visible !important;
+  }
+  #app .page {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+  #app .welcome-row,
+  #app .page-heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+  #app .welcome-row > div:first-child,
+  #app .page-heading > div:first-child { width: 100%; min-width: 0; }
+  #app .welcome-row h1,
+  #app .page-heading h1 {
+    font-size: clamp(28px, 8vw, 36px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: -1px !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+  #app .welcome-chip { max-width: 100% !important; }
+  #app .stats-grid,
+  #app .feature-grid,
+  #app .snippet-grid,
+  #app .mini-game-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+  #app .stat-card,
+  #app .feature-card,
+  #app .snippet-card,
+  #app .note-banner,
+  #app .editor-panel,
+  #app .game-stage,
+  #app .side-card {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  #app .game-layout,
+  #app .editor-layout { display: flex !important; flex-direction: column !important; width: 100% !important; }
+  #app #game-canvas { width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; }
+}
