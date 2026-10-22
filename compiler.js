@@ -45,7 +45,7 @@
           };
           return version(b.compiler) - version(a.compiler);
         });
-        return candidates[0].compiler;
+        return candidates[0].name;
       }).catch(error => {
         compilerPromise = null;
         throw error;
