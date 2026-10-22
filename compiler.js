@@ -30,6 +30,8 @@
 
   async function findCompiler() {
     if (!compilerPromise) {
+      const cached = (() => { try { return localStorage.getItem("samuelhub_compiler_name"); } catch { return null; } })();
+      if (cached) return Promise.resolve(cached);
       compilerPromise = fetchJson(API + "/list.json").then(list => {
         const compilers = Array.isArray(list) ? list : [];
         const candidates = compilers.filter(item =>
@@ -43,11 +45,14 @@
             const match = String(id || "").match(/(\d+)(?:\.(\d+))?/);
             return match ? Number(match[1]) * 100 + Number(match[2] || 0) : (/(?:head|trunk|latest)/i.test(String(id || "")) ? 9999 : 0);
           };
-          return version(b.compiler) - version(a.compiler);
+          return version(b.name) - version(a.name);
         });
-        return candidates[0].name;
+        const selected = candidates[0].name;
+        try { localStorage.setItem("samuelhub_compiler_name", selected); } catch {}
+        return selected;
       }).catch(error => {
         compilerPromise = null;
+        try { localStorage.removeItem("samuelhub_compiler_name"); } catch {}
         throw error;
       });
     }
