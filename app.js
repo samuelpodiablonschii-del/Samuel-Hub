@@ -111,7 +111,8 @@ let gameType="space",gameRunning=false,animId=0,lastTime=0,score=0,player={x:150
 document.querySelectorAll(".skin-choice").forEach(b=>{b.style.setProperty("--skin",b.dataset.skin);b.classList.toggle("selected",b.dataset.skin===skin);b.addEventListener("click",()=>{const cost=Number(b.dataset.cost||0),owned=DB.read("owned_skins",["#9c8cff"]);if(!owned.includes(b.dataset.skin)){const coins=DB.read("coins",0);if(coins<cost){toast("Not enough coins yet.");return;}DB.write("coins",coins-cost);owned.push(b.dataset.skin);DB.write("owned_skins",owned);}skin=b.dataset.skin;DB.write("skin",skin);document.querySelectorAll(".skin-choice").forEach(x=>{x.classList.toggle("selected",x===b);x.classList.toggle("locked",!DB.read("owned_skins",["#9c8cff"]).includes(x.dataset.skin));});updateStats();toast("Skin equipped.");});b.classList.toggle("locked",!DB.read("owned_skins",["#9c8cff"]).includes(b.dataset.skin));});
 renderShop();
 function setGame(type){
-  gameType=type;gameRunning=false;cancelAnimationFrame(animId);
+  if(!["space","rider","stack","memory"].includes(type))return;
+  gameRunning=false;hold=false;cancelAnimationFrame(animId);gameType=type;
   document.querySelectorAll(".game-tab").forEach(b=>b.classList.toggle("active",b.dataset.game===type));
   const names={
     space:["Orbital Run","Hold to rise. Release to fall. Thread the wide gates.","Guide your glowing ball through a fair, endless obstacle course. Gates have generous gaps and never overlap."],
@@ -133,7 +134,10 @@ function setGame(type){
   updateMemoryModeHint();
   drawIdleGame();
 }
-document.querySelectorAll("[data-game]").forEach(b=>b.addEventListener("click",()=>setGame(b.dataset.game)));
+document.querySelectorAll("[data-game]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();setGame(b.dataset.game);}));
+const gameSwitcher=e=>{const button=e.target.closest("[data-game]");if(!button)return;if(!["space","rider","stack","memory"].includes(button.dataset.game))return;e.preventDefault();setGame(button.dataset.game);};
+document.querySelector(".game-tabs").addEventListener("click",gameSwitcher);
+document.querySelector(".mini-game-grid").addEventListener("click",gameSwitcher);
 function drawBackground(){ctx.fillStyle="#0e1016";ctx.fillRect(0,0,800,450);ctx.strokeStyle="#202330";ctx.lineWidth=1;for(let x=0;x<800;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,450);ctx.stroke();}for(let y=0;y<450;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke();}for(let i=0;i<45;i++){let x=(i*173+27)%800,y=(i*89+13)%450;ctx.fillStyle="#646a85";ctx.globalAlpha=.35+(i%4)*.12;ctx.fillRect(x,y,2,2);}ctx.globalAlpha=1;}
 function drawIdleGame(){if(!canvas||gameRunning)return;drawBackground();ctx.fillStyle=skin;ctx.beginPath();ctx.arc(150,220,10,0,Math.PI*2);ctx.fill();ctx.fillStyle="#a2a6b9";ctx.font="14px monospace";ctx.fillText(gameType==="rider"?"NEON RIDER":gameType==="memory"?"MEMORY GRID":gameType==="stack"?"STACK SHIFT":"ORBITAL RUN",28,42);if(gameType==="rider"){ctx.strokeStyle=skin;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,340);for(let x=0;x<800;x+=10)ctx.lineTo(x,340+Math.sin(x*.02)*35+Math.sin(x*.05)*10);ctx.stroke();}if(gameType==="stack"){drawStackIdle();return;}if(gameType==="memory"){const g=memoryLayout(memorySquareCount);for(let i=0;i<memorySquareCount;i++){const x=g.x+(i%g.cols)*(g.tileW+g.gap),y=g.y+Math.floor(i/g.cols)*(g.tileH+g.gap);ctx.fillStyle="#29273b";ctx.fillRect(x,y,g.tileW,g.tileH);}}}
 function startGame(){cancelAnimationFrame(animId);score=0;lastTime=0;gameRunning=true;hold=false;player={x:150,y:220,vy:0};obstacles=[];particles=[];riderX=0;$("game-overlay").classList.add("hidden");if(gameType==="memory"){startMemory();return;}if(gameType==="stack"){stackBlocks=[{x:250,y:380,w:300,h:18}];stackCurrent={x:0,y:356,w:300,h:18,dir:1};animId=requestAnimationFrame(loopStack);return;}if(gameType==="rider"){player={x:170,y:300,vy:0};}animId=requestAnimationFrame(loopGame);}
