@@ -77,6 +77,13 @@ int main() {
 }`;
 let drafts=DB.read("drafts",Array.from({length:10},(_,i)=>({name:`page-${i+1}.cpp`,code:i===0?defaultDraft:""})));
 if(!Array.isArray(drafts)||drafts.length!==10)drafts=Array.from({length:10},(_,i)=>({name:`page-${i+1}.cpp`,code:""}));
+const oldDefaultDraft=`#include <iostream>
+
+int main() {
+    std::cout << "Hello, world!\\n";
+    return 0;
+}`;
+if(drafts[0]&&drafts[0].code===oldDefaultDraft)drafts[0].code=defaultDraft;
 let currentDraft=0,saveDebounce;
 function renderDraftList(){const list=$("draft-list");list.innerHTML="";drafts.forEach((d,i)=>{const b=document.createElement("button");b.className="draft-button"+(i===currentDraft?" active":"");b.textContent=`page-${i+1}.cpp`;b.addEventListener("click",()=>switchDraft(i));list.append(b);});}
 function switchDraft(i){drafts[currentDraft].code=$("cpp-code").value;currentDraft=i;$("cpp-code").value=drafts[i].code; $("current-file-name").textContent=drafts[i].name;renderDraftList();}
