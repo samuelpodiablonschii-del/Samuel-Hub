@@ -134,7 +134,6 @@ function setGame(type){
   updateMemoryModeHint();
   drawIdleGame();
 }
-document.querySelectorAll("[data-game]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();setGame(b.dataset.game);}));
 const gameSwitcher=e=>{const button=e.target.closest("[data-game]");if(!button)return;if(!["space","rider","stack","memory"].includes(button.dataset.game))return;e.preventDefault();setGame(button.dataset.game);};
 document.querySelector(".game-tabs").addEventListener("click",gameSwitcher);
 document.querySelector(".mini-game-grid").addEventListener("click",gameSwitcher);
