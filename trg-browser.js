@@ -46,7 +46,7 @@ async function sprite(path){
 }
 async function draw(){
  const c=canvas();if(!c||!state||!mod)return;
- const ctx=c.getContext("2d"),W=c.width,H=c.height,now=performance.now(),groups=state.groups||[],visible=v=>v.visible!==false&&groupVisible(v.group,groups);
+ if(mod._trg_tick){mod._trg_tick();try{state=JSON.parse(str("_trg_get_ui_state")||"{}");}catch(_){}}\n const ctx=c.getContext("2d"),W=c.width,H=c.height,now=performance.now(),groups=state.groups||[],visible=v=>v.visible!==false&&groupVisible(v.group,groups);
  ctx.clearRect(0,0,W,H);ctx.fillStyle="#11131b";ctx.fillRect(0,0,W,H);
  for(const v of [...(state.blocks||[])].sort((a,b)=>(a.z||0)-(b.z||0))){
   if(!visible(v))continue;const p=position(v,now),x=p.x*W/100,y=p.y*H/100,w=v.width*W/100,h=v.height*H/100;
