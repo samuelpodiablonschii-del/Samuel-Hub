@@ -4613,7 +4613,8 @@ extern "C" const char* trg_run_source(const char* source,const char* input){
 extern "C" const char* trg_get_output(){return trgWebOutput.c_str();}
 extern "C" const char* trg_get_web_html(){return webPageHtml.c_str();}
 extern "C" void trg_set_key(const char* key,int pressed){if(!key)return;if(pressed)trgWebPressedKeys.insert(key);else trgWebPressedKeys.erase(key);if(controlsEnabled)uiVariables[key]=pressed?"press":"released";}
-extern "C" void trg_click_button(const char* name){if(!name)return;for(const auto& b:uiButtons)if(b.name==name&&b.visible&&uiGroupIsVisible(b.group)){Flow flow;executeBlock(b.body,0,b.body.size(),uiVariables,uiTypes,uiDefaults,flow,false,true);break;}}
+extern "C" void trg_click_button(const char* name){if(!name)return;for(const auto& b:uiButtons)if(b.name==name&&b.visible&&uiGroupIsVisible(b.group)){Flow flow;executeBlock(b.body,0,b.body.size(),uiVariables,uiTypes,uiDefaults,flow,false,true);refreshCollisionWatches(uiVariables,uiTypes);break;}}
+extern "C" void trg_tick(){const auto now=std::chrono::steady_clock::now();for(std::size_t i=0;i<everyTasks.size();){if(now<everyTasks[i].nextRun){++i;continue;}const EveryTask task=everyTasks[i];everyTasks[i].nextRun=now+task.interval;refreshCollisionWatches(uiVariables,uiTypes);Flow flow;executeBlock(task.body,0,task.body.size(),uiVariables,uiTypes,uiDefaults,flow,task.manualMode,task.uiMode);if(flow.stopped){everyTasks.clear();break;}if(flow.broke)everyTasks.erase(everyTasks.begin()+static_cast<std::ptrdiff_t>(i));else ++i;}}
 extern "C" const char* trg_get_ui_state(){
  auto q=[](const std::string&s){std::string r="\"";for(unsigned char c:s){if(c=='\\'||c=='\"'){r+='\\';r+=char(c);}else if(c=='\n')r+="\\n";else if(c=='\r')r+="\\r";else if(c=='\t')r+="\\t";else if(c>=32)r+=char(c);}return r+"\"";};
  std::ostringstream o;o<<"{\"blocks\":[";
