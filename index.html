@@ -31,7 +31,7 @@
       <p class="sidebar-label">WORKSPACE</p>
       <button class="nav-item active" data-page="home"><span>⌂</span> Overview</button>
       <button class="nav-item" data-page="code"><span>⌘</span> Code library</button>
-      <button class="nav-item" data-page="editor"><span>▤</span> C++ workspace</button>
+      <button class="nav-item" data-page="editor"><span>▤</span> TRG workspace</button>
       <button class="nav-item" data-page="games"><span>▹</span> Arcade</button>
       <button class="nav-item" data-page="links"><span>↗</span> Game links</button><button class="nav-item" data-page="settings"><span>⚙</span> Settings</button><button class="nav-item" data-page="dev"><span>⌘</span> Dev</button>
       <div class="sidebar-bottom">
@@ -72,21 +72,16 @@
       </section>
 
       <section id="page-editor" class="page hidden">
-        <div class="page-heading"><div><p class="eyebrow">LOCAL DRAFTS</p><h1>C++ workspace</h1><p class="muted">Ten autosaving pages for your experiments.</p></div><div class="save-indicator"><span class="status-dot"></span> <span id="save-status">Saved locally</span></div></div>
+        <div class="page-heading"><div><p class="eyebrow">LOCAL DRAFTS</p><h1>TRG workspace</h1><p class="muted">Ten autosaving TRG pages. Runs locally in your browser with WebAssembly.</p></div><div class="save-indicator"><span class="status-dot"></span> <span id="save-status">Saved locally</span></div></div>
         <div class="editor-layout">
           <div class="draft-list" id="draft-list"></div>
           <div class="editor-panel">
-            <div class="editor-top"><div><span class="file-dot"></span><strong id="current-file-name">page-1.cpp</strong></div><button id="clear-draft" class="text-button">Clear page</button></div>
-            <textarea id="cpp-code" spellcheck="false" aria-label="C++ source code" class="cpp-editor" autocapitalize="off" autocomplete="off" placeholder="#include <iostream>
-
-int main() {
-    std::cout << &quot;lebleb&quot;;
-    return 0;
-}"></textarea>
-            <div class="compiler-toolbar"><div class="compiler-language"><span class="language-dot"></span><div><strong>C++23</strong><small>GCC · Online compiler</small></div></div><div class="editor-actions"><button id="export-draft" class="secondary-button">Export .cpp</button><button id="run-code" class="primary-button">▶ Run code</button></div></div><div class="stdin-card"><div class="stdin-heading"><label class="stdin-label" for="code-input">Program input <code>stdin</code></label><span>One answer per line</span></div><textarea id="code-input" class="console-output stdin-input" spellcheck="false" aria-label="Program input" placeholder="Example: 12&#10;5&#10;Enter values for cin before running."></textarea><p>Hosted compiler runs in batch mode: enter input here before execution. It cannot pause mid-run to request more input.</p></div>
+            <div class="editor-top"><div><span class="file-dot"></span><strong id="current-file-name">page-1.trg</strong></div><button id="clear-draft" class="text-button">Clear page</button></div>
+            <textarea id="cpp-code" spellcheck="false" aria-label="TRG source code" class="cpp-editor" autocapitalize="off" autocomplete="off" placeholder="say &quot;Hello from TRG&quot;"></textarea>
+            <div class="compiler-toolbar"><div class="compiler-language"><span class="language-dot"></span><div><strong>TRG</strong><small>C++ interpreter · WebAssembly</small></div></div><div class="editor-actions"><label class="secondary-button trg-import-button">Import project files<input id="trg-files" type="file" multiple hidden></label><button id="export-draft" class="secondary-button">Export .trg</button><button id="run-code" class="primary-button">▶ Run TRG</button></div></div><div class="stdin-card"><div class="stdin-heading"><label class="stdin-label" for="code-input">Input for <code>ask</code></label><span>One answer per line</span></div><textarea id="code-input" class="console-output stdin-input" spellcheck="false" aria-label="Program input" placeholder="Example: Samuel&#10;42&#10;Answers for ask commands, in order."></textarea><p>TRG ask commands read answers from this list, in order. Project files can be imported above for file and JSON commands.</p></div>
             <div class="output-header"><strong>Output / console</strong><span id="compiler-status">Ready to compile</span></div>
-            <textarea id="code-output" class="console-output" spellcheck="false" aria-label="Editable output console" placeholder="Program output will appear here. You can type in this box too."></textarea>
-            <p class="console-note" id="compiler-note">Runs on an external online compiler. Compiler discovery is cached to reduce repeat-run overhead. Never paste passwords or private information into code.</p>
+            <textarea id="code-output" class="console-output" spellcheck="false" aria-label="TRG output console" placeholder="TRG output and errors will appear here."></textarea><div class="trg-stage"><div class="trg-stage-heading"><strong>TRG UI preview</strong><span>Canvas renderer</span></div><canvas id="trg-ui-canvas" width="1000" height="700" aria-label="TRG user interface preview"></canvas></div>
+            <p class="console-note" id="compiler-note">TRG runs inside this page using a WebAssembly build of your C++ interpreter. Imported project files stay in the browser session. Browser network requests are not yet supported by this port.</p>
           </div>
         </div>
       </section>
@@ -101,7 +96,8 @@ int main() {
       <div id="toast" class="toast" role="status"></div>
     </main>
   </div>
-  <script src="compiler.js"></script>
+  <script src="trg_wasm.js"></script>
+  <script src="trg-browser.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
