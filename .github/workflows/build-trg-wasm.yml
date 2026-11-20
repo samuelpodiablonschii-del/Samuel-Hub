@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'trg_web.cpp'
+      - 'trg-browser.js'
+      - 'trg-learning.js'
+      - 'index.html'
+      - 'app.js'
+      - 'style.css'
       - '.github/workflows/build-trg-wasm.yml'
   workflow_dispatch:
 permissions:
