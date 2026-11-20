@@ -16,22 +16,26 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: emscripten/emsdk:latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compile the TRG browser runtime
-        run: >-
-          em++ trg_web.cpp -std=c++17 -DTRG_WEB -O2 --no-entry
-          -sMODULARIZE=1 -sEXPORT_NAME=createTRGModule
-          -sENVIRONMENT=web -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY=1
-          -sFORCE_FILESYSTEM=1 -sNO_EXIT_RUNTIME=1
-          -sEXPORTED_FUNCTIONS='["_trg_run_source","_trg_get_output","_trg_get_web_html","_trg_get_ui_state","_trg_set_key","_trg_click_button","_trg_tick","_malloc","_free"]'
-          -sEXPORTED_RUNTIME_METHODS='["UTF8ToString","stringToNewUTF8","FS"]'
-          -o trg_wasm.js
+        run: |
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/src" \
+            -w /src \
+            emscripten/emsdk:latest \
+            em++ trg_web.cpp -std=c++17 -DTRG_WEB -O2 --no-entry \
+              -sMODULARIZE=1 -sEXPORT_NAME=createTRGModule \
+              -sENVIRONMENT=web -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY=1 \
+              -sFORCE_FILESYSTEM=1 -sNO_EXIT_RUNTIME=1 \
+              -sEXPORTED_FUNCTIONS='["_trg_run_source","_trg_get_output","_trg_get_web_html","_trg_get_ui_state","_trg_set_key","_trg_click_button","_trg_tick","_malloc","_free"]' \
+              -sEXPORTED_RUNTIME_METHODS='["UTF8ToString","stringToNewUTF8","FS"]' \
+              -o trg_wasm.js
+
       - name: Commit generated runtime
         run: |
           git config user.name "github-actions[bot]"
