@@ -346,7 +346,6 @@
     });
     if (lesson.tip) body.append(create("p", "lesson-tip", "TIP  " + lesson.tip));
     $("previous-lesson").disabled = index === 0;
-    $("next-lesson").disabled = index === lessons.length - 1;
     $("complete-lesson").textContent = completed.has(id) ? "Completed ✓ · Continue →" : "Mark complete & continue →";
     $("lesson-completion-label").textContent = completed.has(id) ? "Completed" : "Not completed yet";
     $("learning-lesson").scrollIntoView({ behavior: "smooth", block: "start" });
