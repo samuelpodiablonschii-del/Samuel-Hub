@@ -26,7 +26,8 @@ function navigate(page) {
   $("page-"+page).classList.remove("hidden");
   document.querySelectorAll(".nav-item[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   if(page==="games") drawIdleGame();
-  if(page==="editor") renderDraftList();
+  if(page==="editor"){renderDraftList();updateTRGLineNumbers();}
+  if(page==="learn"&&window.TRGLearning)window.TRGLearning.render();
   if(page==="code") renderSnippets();
   if(page==="links") renderGameLinks();
   if(page==="settings") syncSettings();
@@ -83,11 +84,42 @@ int main() {
 if(drafts[0]&&drafts[0].code===oldDefaultDraft)drafts[0].code=defaultDraft;
 let currentDraft=0,saveDebounce;
 function renderDraftList(){const list=$("draft-list");list.innerHTML="";drafts.forEach((d,i)=>{const b=document.createElement("button");b.className="draft-button"+(i===currentDraft?" active":"");b.textContent=`page-${i+1}.trg`;b.addEventListener("click",()=>switchDraft(i));list.append(b);});}
-function switchDraft(i){drafts[currentDraft].code=$("cpp-code").value;currentDraft=i;$("cpp-code").value=drafts[i].code; $("current-file-name").textContent=drafts[i].name;renderDraftList();}
+function switchDraft(i){drafts[currentDraft].code=$("cpp-code").value;currentDraft=i;$("cpp-code").value=drafts[i].code; $("current-file-name").textContent=drafts[i].name;renderDraftList();updateTRGLineNumbers();}
 function saveDraft(){drafts[currentDraft].code=$("cpp-code").value;DB.write("drafts",drafts);$("save-status").textContent="Saved locally";renderDraftList();}
 $("cpp-code").addEventListener("input",()=>{$("save-status").textContent="Saving…";clearTimeout(saveDebounce);saveDebounce=setTimeout(saveDraft,250);});
 $("clear-draft").addEventListener("click",()=>{if(confirm("Clear this page?")){$("cpp-code").value="";saveDraft();$("code-output").value="";}});
-function setupApp(){renderSnippets();renderDraftList();$("cpp-code").value=drafts[currentDraft].code;updateStats();renderGameLinks();syncSettings();renderShop();applyEquippedThemeOnLoad();if(window.TRGWeb)window.TRGWeb.init().then(()=>$("compiler-status").textContent="TRG WebAssembly ready").catch(e=>$("compiler-status").textContent=e.message);}
+function updateTRGLineNumbers(){
+  const editor=$("cpp-code"),gutter=$("code-line-numbers");
+  if(!editor||!gutter)return;
+  const count=Math.max(1,editor.value.split("\n").length);
+  gutter.textContent=Array.from({length:count},(_,i)=>String(i+1)).join("\n");
+  gutter.scrollTop=editor.scrollTop;
+}
+window.updateTRGLineNumbers=updateTRGLineNumbers;
+function setupTRGEditorTools(){
+  const editor=$("cpp-code");
+  if(!editor||editor.dataset.toolsReady==="true")return;
+  editor.dataset.toolsReady="true";
+  editor.addEventListener("scroll",()=>{const gutter=$("code-line-numbers");if(gutter)gutter.scrollTop=editor.scrollTop;});
+  editor.addEventListener("input",updateTRGLineNumbers);
+  editor.addEventListener("keydown",event=>{
+    if((event.ctrlKey||event.metaKey)&&event.key==="Enter"){event.preventDefault();$("run-code").click();return;}
+    if(event.key==="Tab"){
+      event.preventDefault();
+      const start=editor.selectionStart,end=editor.selectionEnd,value=editor.value;
+      editor.value=value.slice(0,start)+"    "+value.slice(end);
+      editor.selectionStart=editor.selectionEnd=start+4;
+      editor.dispatchEvent(new Event("input",{bubbles:true}));
+    }else if(event.key==="Enter"){
+      const start=editor.selectionStart,lineStart=valueLineStart(editor.value,start);
+      const prefix=editor.value.slice(lineStart,start).match(/^\s*/)?.[0]||"";
+      if(prefix){event.preventDefault();const value=editor.value;editor.value=value.slice(0,start)+"\n"+prefix+value.slice(editor.selectionEnd);editor.selectionStart=editor.selectionEnd=start+1+prefix.length;editor.dispatchEvent(new Event("input",{bubbles:true}));}
+    }
+  });
+  updateTRGLineNumbers();
+}
+function valueLineStart(value,position){return value.lastIndexOf("\n",position-1)+1;}
+function setupApp(){renderSnippets();renderDraftList();$("cpp-code").value=drafts[currentDraft].code;setupTRGEditorTools();updateTRGLineNumbers();updateStats();renderGameLinks();syncSettings();renderShop();applyEquippedThemeOnLoad();if(window.TRGLearning)window.TRGLearning.render();if(window.TRGWeb)window.TRGWeb.init().then(()=>$("compiler-status").textContent="TRG WebAssembly ready").catch(e=>$("compiler-status").textContent=e.message);else $("compiler-status").textContent="WebAssembly runtime not loaded yet · refresh after the build finishes";}
 
 function demoRun(source){
   if(/\b(?:while|for|do)\s*\(/.test(source))return "Demo runner doesn't execute loops. Connect a real compiler service to run full C++.";
