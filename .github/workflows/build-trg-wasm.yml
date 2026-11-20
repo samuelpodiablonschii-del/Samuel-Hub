@@ -22,6 +22,12 @@ jobs:
         with:
           ref: main
 
+      - name: Validate website JavaScript
+        run: |
+          node --check app.js
+          node --check trg-browser.js
+          node --check trg-learning.js
+
       - name: Compile the TRG browser runtime
         run: |
           docker run --rm \
