@@ -295,3 +295,99 @@
 #trg-ui-canvas{display:block;width:100%;height:auto;aspect-ratio:10/7;background:#11131b;touch-action:manipulation}
 
 #trg-web-frame{display:block;width:100%;height:520px;border:0;background:#fff}#trg-web-frame.hidden{display:none!important}
+
+
+/* TRG IDE editor surface */
+.code-editor-shell{display:flex;align-items:stretch;width:100%;min-width:0;min-height:360px;overflow:hidden;border:1px solid #303440;border-radius:9px;background:#101218}
+.code-gutter{flex:0 0 46px;min-height:360px;padding:13px 11px 13px 6px;overflow:hidden;text-align:right;white-space:pre;color:#626b80;background:#141821;border-right:1px solid #282e3a;font:12px/1.65 'DM Mono',monospace;user-select:none}
+.code-editor-shell .cpp-editor{flex:1 1 auto;width:0;min-width:0;height:460px;min-height:360px;margin:0;padding:13px;border:0;border-radius:0;outline:none;resize:vertical;background:#101218;color:#e2e5f0;font:12px/1.65 'DM Mono',monospace;tab-size:4;white-space:pre;overflow:auto}
+.code-editor-shell .cpp-editor:focus{outline:none;box-shadow:inset 0 0 0 1px #a394ff35}
+.editor-top{gap:10px}
+.editor-top strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#compiler-status{max-width:60%}
+
+/* TRG Academy */
+.learn-heading{align-items:center}
+.learning-progress-card{width:min(100%,230px);padding:13px 15px;background:var(--panel);border:1px solid var(--line);border-radius:12px;flex-shrink:0}
+.learning-progress-card>span,.learning-progress-card small{display:block;color:var(--muted);font-size:9px;letter-spacing:1px}
+.learning-progress-card>strong{display:block;margin:5px 0 8px;font-size:25px;letter-spacing:-1px}
+.learning-progress-card small{margin-top:7px;letter-spacing:0}
+.learning-progress-track,.learning-level-track{height:6px;overflow:hidden;border-radius:99px;background:#303442}
+.learning-progress-track i,.learning-level-track i{display:block;height:100%;border-radius:99px;background:var(--green);transition:width .2s ease}
+.learning-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:14px 0 20px;padding:16px 18px;background:linear-gradient(110deg,#242139,#1a2028);border:1px solid #3a3652;border-radius:13px}
+.learning-intro>div{display:flex;align-items:center;gap:13px;min-width:0}
+.learning-star{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#37304f;color:var(--purple);font-size:20px}
+.learning-intro strong{display:block;font-size:13px}
+.learning-intro p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.55}
+.learning-intro .primary-button{white-space:nowrap}
+.learning-level-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;align-items:start}
+.learning-level-card{min-width:0;padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+.learning-level-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:13px}
+.learning-level-number{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--purple);background:#302b47;padding:6px 8px;border-radius:6px}
+.learning-level-progress{font-size:10px;color:var(--muted)}
+.learning-level-card h2{margin:0 0 3px;font-size:19px}
+.learning-level-subtitle{margin:0 0 8px;color:var(--green);font-size:11px;font-weight:600}
+.learning-level-description{min-height:38px;margin:0 0 13px;color:var(--muted);font-size:11px;line-height:1.55}
+.learning-level-track{margin:0 0 12px}
+.learning-lesson-list{display:grid;gap:6px}
+.learning-lesson-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:10px;background:var(--panel2);border:1px solid transparent;border-radius:9px;color:var(--text);text-align:left;transition:border-color .15s,background .15s}
+.learning-lesson-row:hover{border-color:var(--purple);background:#252435}
+.learning-lesson-status{display:grid;place-items:center;width:27px;height:27px;flex:0 0 27px;border-radius:8px;background:#292e3a;color:var(--muted);font:10px 'DM Mono',monospace}
+.learning-lesson-row.is-complete .learning-lesson-status{background:#203a31;color:var(--green);font-weight:700}
+.learning-lesson-row-body{display:block;min-width:0;flex:1}
+.learning-lesson-row-body strong,.learning-lesson-row-body small{display:block;overflow-wrap:anywhere}
+.learning-lesson-row-body strong{font-size:11px}
+.learning-lesson-row-body small{display:-webkit-box;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.4;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.learning-lesson-arrow{color:var(--muted);font-size:13px}
+.learning-level-start{width:100%;margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--text);font-size:11px;font-weight:600}
+.learning-level-start:hover{border-color:var(--purple);color:var(--purple)}
+.learning-lesson{margin-top:6px}
+.learning-lesson-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.lesson-level-chip{padding:6px 9px;border-radius:6px;background:#302b47;color:var(--purple);font-size:9px;font-weight:700;letter-spacing:1px}
+.lesson-position{margin-left:auto;color:var(--muted);font-size:11px}
+.learning-lesson-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:16px;align-items:start}
+.learning-content,.lesson-example-card{min-width:0;padding:21px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+.learning-content h2{font-size:27px;line-height:1.15;margin:0 0 9px}
+.learning-content>.muted{margin:0 0 20px;font-size:13px}
+.lesson-topic{margin:18px 0}
+.lesson-topic h3{font-size:14px;margin:0 0 6px}
+.lesson-topic p{margin:0;color:var(--muted);font-size:12px;line-height:1.7}
+.lesson-tip{padding:12px 13px;background:#202a2a;border:1px solid #30443d;border-radius:9px;color:#aee7cb;font-size:11px;line-height:1.6}
+.learning-challenge{margin-top:20px;padding:15px;background:#272338;border:1px solid #403956;border-radius:10px}
+.learning-challenge>span{color:var(--purple);font-size:9px;font-weight:700;letter-spacing:1.2px}
+.learning-challenge h3{margin:7px 0;font-size:15px}
+.learning-challenge p{margin:0;color:#c2bfd1;font-size:12px;line-height:1.65}
+.lesson-example-card{position:sticky;top:16px;background:#151923}
+.lesson-example-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.lesson-example-head>div{display:flex;align-items:center;gap:8px;font-size:11px}
+.lesson-example-head .file-dot{width:7px;height:7px}
+#lesson-code-example{margin:13px 0;padding:14px;max-height:480px;overflow:auto;border:1px solid #303440;border-radius:9px;background:#0e1118;color:#dce2f0;white-space:pre;tab-size:4;font:11px/1.7 'DM Mono',monospace}
+.lesson-example-actions{display:flex;gap:8px}
+.lesson-example-actions .primary-button{width:100%}
+.lesson-input-note{margin:10px 0 0;color:var(--muted);font-size:10px;line-height:1.55}
+.lesson-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding:13px 15px;background:var(--panel);border:1px solid var(--line);border-radius:11px}
+.lesson-footer>span{color:var(--muted);font-size:10px}
+.lesson-footer button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:900px){
+  .learning-level-grid{grid-template-columns:minmax(0,1fr)}
+  .learning-lesson-layout{grid-template-columns:minmax(0,1fr)}
+  .lesson-example-card{position:static}
+}
+@media(max-width:640px){
+  .code-editor-shell{min-height:300px}
+  .code-gutter{flex-basis:34px;padding:12px 7px 12px 3px;font-size:11px}
+  .code-editor-shell .cpp-editor{height:380px;min-height:300px;padding:12px;font-size:11px}
+  .learning-intro{align-items:stretch;flex-direction:column;padding:14px}
+  .learning-intro .primary-button{width:100%}
+  .learning-progress-card{width:100%}
+  .learning-level-grid{grid-template-columns:minmax(0,1fr)}
+  .learning-level-card{padding:14px}
+  .learning-lesson-top{flex-wrap:wrap}
+  .lesson-position{font-size:10px}
+  .learning-content,.lesson-example-card{padding:15px}
+  .learning-content h2{font-size:23px}
+  .lesson-footer{flex-wrap:wrap}
+  .lesson-footer>span{order:3;width:100%;text-align:center}
+  .lesson-footer button{flex:1}
+  #compiler-status{max-width:100%}
+}
