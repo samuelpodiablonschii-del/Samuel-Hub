@@ -31,7 +31,8 @@
       <p class="sidebar-label">WORKSPACE</p>
       <button class="nav-item active" data-page="home"><span>⌂</span> Overview</button>
       <button class="nav-item" data-page="code"><span>⌘</span> Code library</button>
-      <button class="nav-item" data-page="editor"><span>▤</span> TRG workspace</button>
+      <button class="nav-item" data-page="editor"><span>⌘</span> TRG IDE</button>
+      <button class="nav-item" data-page="learn"><span>✦</span> Learn TRG</button>
       <button class="nav-item" data-page="games"><span>▹</span> Arcade</button>
       <button class="nav-item" data-page="links"><span>↗</span> Game links</button><button class="nav-item" data-page="settings"><span>⚙</span> Settings</button><button class="nav-item" data-page="dev"><span>⌘</span> Dev</button>
       <div class="sidebar-bottom">
@@ -56,7 +57,7 @@
         <div class="section-heading"><div><h2>Jump back in</h2><p class="muted">Your most-used tools, one click away.</p></div></div>
         <div class="feature-grid">
           <button class="feature-card" data-goto="code"><span class="feature-symbol purple">⌘</span><span class="feature-title">Code library</span><span class="feature-desc">Keep JSON snippets ready to copy.</span><span class="feature-arrow">↗</span></button>
-          <button class="feature-card" data-goto="editor"><span class="feature-symbol green">▤</span><span class="feature-title">C++ workspace</span><span class="feature-desc">Write, save and run your code.</span><span class="feature-arrow">↗</span></button>
+          <button class="feature-card" data-goto="editor"><span class="feature-symbol green">⌘</span><span class="feature-title">TRG IDE</span><span class="feature-desc">Write and run real TRG programs.</span><span class="feature-arrow">↗</span></button><button class="feature-card" data-goto="learn"><span class="feature-symbol purple">✦</span><span class="feature-title">Learn TRG</span><span class="feature-desc">Courses from your first command to advanced projects.</span><span class="feature-arrow">↗</span></button>
           <button class="feature-card" data-goto="games"><span class="feature-symbol orange">▹</span><span class="feature-title">Arcade</span><span class="feature-desc">Take a quick break between projects.</span><span class="feature-arrow">↗</span></button><button class="feature-card" data-goto="links"><span class="feature-symbol purple">↗</span><span class="feature-title">Game links</span><span class="feature-desc">Explore browser games, including Space Waves.</span><span class="feature-arrow">↗</span></button>
         </div>
         <div class="note-banner"><div class="note-icon">i</div><div><strong>Everything stays on this device</strong><p>Your snippets, drafts and game records use browser storage. Clearing site data will erase them.</p></div></div>
@@ -72,18 +73,48 @@
       </section>
 
       <section id="page-editor" class="page hidden">
-        <div class="page-heading"><div><p class="eyebrow">LOCAL DRAFTS</p><h1>TRG workspace</h1><p class="muted">Ten autosaving TRG pages. Runs locally in your browser with WebAssembly.</p></div><div class="save-indicator"><span class="status-dot"></span> <span id="save-status">Saved locally</span></div></div>
+        <div class="page-heading"><div><p class="eyebrow">LOCAL DRAFTS</p><h1>TRG IDE</h1><p class="muted">Write, run and preview real TRG programs right in your browser.</p></div><div class="save-indicator"><span class="status-dot"></span> <span id="save-status">Saved locally</span></div></div>
         <div class="editor-layout">
           <div class="draft-list" id="draft-list"></div>
           <div class="editor-panel">
             <div class="editor-top"><div><span class="file-dot"></span><strong id="current-file-name">page-1.trg</strong></div><button id="clear-draft" class="text-button">Clear page</button></div>
-            <textarea id="cpp-code" spellcheck="false" aria-label="TRG source code" class="cpp-editor" autocapitalize="off" autocomplete="off" placeholder="say &quot;Hello from TRG&quot;"></textarea>
-            <div class="compiler-toolbar"><div class="compiler-language"><span class="language-dot"></span><div><strong>TRG</strong><small>C++ interpreter · WebAssembly</small></div></div><div class="editor-actions"><label class="secondary-button trg-import-button">Import project files<input id="trg-files" type="file" multiple hidden></label><button id="export-draft" class="secondary-button">Export .trg</button><button id="run-code" class="primary-button">▶ Run TRG</button></div></div><div class="stdin-card"><div class="stdin-heading"><label class="stdin-label" for="code-input">Input for <code>ask</code></label><span>One answer per line</span></div><textarea id="code-input" class="console-output stdin-input" spellcheck="false" aria-label="Program input" placeholder="Example: Samuel&#10;42&#10;Answers for ask commands, in order."></textarea><p>TRG ask commands read answers from this list, in order. Project files can be imported above for file and JSON commands.</p></div>
+            <div class="code-editor-shell"><div id="code-line-numbers" class="code-gutter" aria-hidden="true">1</div><textarea id="cpp-code" spellcheck="false" aria-label="TRG source code" class="cpp-editor" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="say &quot;Hello from TRG&quot;"></textarea></div>
+            <div class="compiler-toolbar"><div class="compiler-language"><span class="language-dot"></span><div><strong>TRG</strong><small>Native TRG interpreter · WebAssembly</small></div></div><div class="editor-actions"><label class="secondary-button trg-import-button">Import project files<input id="trg-files" type="file" multiple hidden></label><button id="export-draft" class="secondary-button">Export .trg</button><button id="run-code" class="primary-button">▶ Run TRG</button></div></div><div class="stdin-card"><div class="stdin-heading"><label class="stdin-label" for="code-input">Input for <code>ask</code></label><span>One answer per line</span></div><textarea id="code-input" class="console-output stdin-input" spellcheck="false" aria-label="Program input" placeholder="Example: Samuel&#10;42&#10;Answers for ask commands, in order."></textarea><p>TRG ask commands read answers from this list, in order. Project files can be imported above for file and JSON commands.</p></div>
             <div class="output-header"><strong>Output / console</strong><span id="compiler-status">Ready to compile</span></div>
             <textarea id="code-output" class="console-output" spellcheck="false" aria-label="TRG output console" placeholder="TRG output and errors will appear here."></textarea><div class="trg-stage"><div class="trg-stage-heading"><strong>TRG UI preview</strong><span>Canvas renderer</span></div><canvas id="trg-ui-canvas" width="1000" height="700" aria-label="TRG user interface preview"></canvas>
             <iframe id="trg-web-frame" class="hidden" title="TRG Web preview" sandbox="allow-scripts"></iframe></div>
             <p class="console-note" id="compiler-note">TRG runs inside this page using a WebAssembly build of your C++ interpreter. Imported project files stay in the browser session. Browser network requests are not yet supported by this port.</p>
           </div>
+        </div>
+      </section>
+
+      <section id="page-learn" class="page hidden">
+        <div class="page-heading learn-heading">
+          <div><p class="eyebrow">TRG ACADEMY</p><h1>Learn TRG</h1><p class="muted">A complete path from your first command to building advanced interactive projects.</p></div>
+          <div class="learning-progress-card"><span>YOUR PROGRESS</span><strong id="learning-progress-value">0%</strong><div class="learning-progress-track"><i id="learning-progress-fill"></i></div><small id="learning-progress-count">0 of 18 lessons completed</small></div>
+        </div>
+        <div id="learning-overview">
+          <div class="learning-intro"><div><span class="learning-star">✦</span><div><strong>Learn by building</strong><p>Each lesson has an explanation, a working TRG example and a challenge. Send examples straight to the IDE and run them.</p></div></div><button class="primary-button" type="button" data-goto="editor">Open TRG IDE ↗</button></div>
+          <div id="learning-level-grid" class="learning-level-grid"></div>
+        </div>
+        <div id="learning-lesson" class="learning-lesson hidden">
+          <div class="learning-lesson-top"><button id="back-to-lessons" class="secondary-button" type="button">← All courses</button><span id="lesson-level-chip" class="lesson-level-chip">LEVEL 1</span><span id="lesson-position" class="lesson-position"></span></div>
+          <div class="learning-lesson-layout">
+            <article class="learning-content">
+              <p id="lesson-kicker" class="eyebrow">LEVEL 1 · FIRST STEPS</p>
+              <h2 id="lesson-title">Your first TRG program</h2>
+              <p id="lesson-description" class="muted"></p>
+              <div id="lesson-body" class="lesson-body"></div>
+              <div class="learning-challenge"><span>YOUR TURN</span><h3>Challenge</h3><p id="lesson-challenge"></p></div>
+            </article>
+            <aside class="lesson-example-card">
+              <div class="lesson-example-head"><div><span class="file-dot"></span><strong>Working example</strong></div><button id="copy-lesson-code" class="text-button" type="button">Copy code</button></div>
+              <pre id="lesson-code-example"></pre>
+              <div class="lesson-example-actions"><button id="use-lesson-code" class="primary-button" type="button">Open example in IDE ↗</button></div>
+              <p id="lesson-input-note" class="lesson-input-note">The example runs in the TRG WebAssembly interpreter.</p>
+            </aside>
+          </div>
+          <div class="lesson-footer"><button id="previous-lesson" class="secondary-button" type="button">← Previous</button><span id="lesson-completion-label">Lesson not completed</span><button id="complete-lesson" class="primary-button" type="button">Mark complete & continue →</button></div>
         </div>
       </section>
 
