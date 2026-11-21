@@ -306,6 +306,10 @@ std::filesystem::path projectRoot = std::filesystem::current_path();
 std::filesystem::path currentSourcePath;
 bool filesEnabled = false;
 bool jsonEnabled = false;
+struct TrgDatabaseTable { std::vector<std::string> columns; std::vector<std::vector<std::string>> rows; };
+std::unordered_map<std::string, TrgDatabaseTable> trgDatabaseTables;
+std::filesystem::path trgDatabasePath;
+bool databaseEnabled = false;
 std::vector<std::string> groupStack;
 std::vector<std::unordered_set<std::string>> groupSnapshots;
 std::unordered_map<std::string, std::vector<std::string>> variableGroups;
@@ -1758,6 +1762,7 @@ std::string psExecuteSafe(const std::string& code, std::string& error) {
 struct LibraryState {
     bool files = false;
     bool json = false;
+    bool database = false;
     bool web = false;
     bool collision = false;
     bool manual = false;
@@ -1854,9 +1859,10 @@ void scanLibraries(const std::vector<std::string>& program, LibraryState& librar
         if (second.size() < 3 || second.front() != '(' || second.back() != ')') continue;
         const std::string name = lower(second.substr(1, second.size() - 2));
         if (name == "all") {
-            libraries.files = libraries.json = libraries.web = libraries.collision = true;
+            libraries.files = libraries.json = libraries.database = libraries.web = libraries.collision = true;
             libraries.manual = libraries.ui = libraries.controls = libraries.network = true;
         } else if (name == "files") libraries.files = true;
+        else if (name == "database" || name == "db") libraries.database = true;
         else if (name == "json") libraries.json = true;
         else if (name == "web") libraries.web = true;
         else if (name == "collision") libraries.collision = true;
@@ -2046,6 +2052,98 @@ void registerFunctions(const std::vector<std::string>& program, bool clearFirst 
                                          program.begin() + static_cast<std::ptrdiff_t>(close))};
         }
     }
+}
+
+std::string hexEncode(const std::string& input) {
+    static const char digits[] = "0123456789ABCDEF"; std::string output; output.reserve(input.size()*2);
+    for (unsigned char byte : input) { output.push_back(digits[byte >> 4]); output.push_back(digits[byte & 15]); }
+    return output;
+}
+bool hexDecode(const std::string& input, std::string& output) {
+    auto digit=[](char c)->int { if(c>='0'&&c<='9')return c-'0'; c=static_cast<char>(std::toupper(static_cast<unsigned char>(c))); return c>='A'&&c<='F'?c-'A'+10:-1; };
+    std::string clean; for(unsigned char c:input)if(!std::isspace(c))clean.push_back(static_cast<char>(c));
+    if(clean.size()%2)return false; output.clear();
+    for(std::size_t i=0;i<clean.size();i+=2){int h=digit(clean[i]),l=digit(clean[i+1]);if(h<0||l<0)return false;output.push_back(static_cast<char>((h<<4)|l));}
+    return true;
+}
+std::string databaseEncode(const std::string& value) { return value.empty() ? "-" : hexEncode(value); }
+bool databaseDecode(const std::string& encoded, std::string& value) {
+    if (encoded == "-") { value.clear(); return true; }
+    return hexDecode(encoded, value);
+}
+std::size_t databaseColumnIndex(const TrgDatabaseTable& table, const std::string& name) {
+    const auto found = std::find(table.columns.begin(), table.columns.end(), name);
+    return found == table.columns.end() ? table.columns.size() : static_cast<std::size_t>(found - table.columns.begin());
+}
+bool saveTrgDatabase(std::string& error) {
+    error.clear();
+    if (trgDatabasePath.empty()) { error = "open a database first"; return false; }
+    std::ofstream out(trgDatabasePath, std::ios::binary | std::ios::trunc);
+    if (!out) { error = "could not write database file"; return false; }
+    out << "TRGDB1\n";
+    std::vector<std::string> names;
+    for (const auto& item : trgDatabaseTables) names.push_back(item.first);
+    std::sort(names.begin(), names.end());
+    for (const auto& name : names) {
+        const auto& table = trgDatabaseTables.at(name);
+        out << "T\t" << databaseEncode(name) << "\t" << table.columns.size() << "\t" << table.rows.size() << "\n";
+        for (const auto& column : table.columns) out << "C\t" << databaseEncode(column) << "\n";
+        for (const auto& row : table.rows) {
+            out << "R";
+            for (const auto& cell : row) out << "\t" << databaseEncode(cell);
+            out << "\n";
+        }
+    }
+    if (!out) { error = "database write failed"; return false; }
+    return true;
+}
+bool loadTrgDatabase(const std::filesystem::path& path, std::string& error) {
+    error.clear();
+    std::ifstream in(path, std::ios::binary);
+    if (!in) { error = "could not read database file"; return false; }
+    std::string line;
+    if (!std::getline(in, line) || line != "TRGDB1") { error = "not a supported TRG database file"; return false; }
+    std::unordered_map<std::string, TrgDatabaseTable> loaded;
+    while (std::getline(in, line)) {
+        if (line.empty()) continue;
+        std::vector<std::string> parts;
+        std::istringstream stream(line);
+        std::string part;
+        while (std::getline(stream, part, '\t')) parts.push_back(part);
+        if (parts.size() != 4 || parts[0] != "T") { error = "corrupt database table header"; return false; }
+        std::string name;
+        if (!databaseDecode(parts[1], name) || name.empty()) { error = "corrupt database table name"; return false; }
+        std::size_t columns = 0, rows = 0;
+        try { columns = static_cast<std::size_t>(std::stoull(parts[2])); rows = static_cast<std::size_t>(std::stoull(parts[3])); }
+        catch (...) { error = "corrupt database dimensions"; return false; }
+        if (columns > 1024 || rows > 1000000) { error = "database dimensions exceed safety limits"; return false; }
+        TrgDatabaseTable table;
+        for (std::size_t c = 0; c < columns; ++c) {
+            if (!std::getline(in, line) || line.rfind("C\t", 0) != 0) { error = "corrupt database column"; return false; }
+            std::string value;
+            if (!databaseDecode(line.substr(2), value) || value.empty() ||
+                std::find(table.columns.begin(), table.columns.end(), value) != table.columns.end()) { error = "invalid or duplicate database column"; return false; }
+            table.columns.push_back(std::move(value));
+        }
+        for (std::size_t r = 0; r < rows; ++r) {
+            if (!std::getline(in, line)) { error = "incomplete database records"; return false; }
+            std::istringstream cellsStream(line);
+            std::string cell;
+            if (!std::getline(cellsStream, cell, '\t') || cell != "R") { error = "corrupt database record"; return false; }
+            std::vector<std::string> values;
+            while (std::getline(cellsStream, cell, '\t')) {
+                std::string value;
+                if (!databaseDecode(cell, value)) { error = "corrupt database value"; return false; }
+                values.push_back(std::move(value));
+            }
+            if (values.size() != columns) { error = "database record has the wrong number of fields"; return false; }
+            table.rows.push_back(std::move(values));
+        }
+        if (!loaded.emplace(name, std::move(table)).second) { error = "duplicate database table"; return false; }
+    }
+    trgDatabaseTables = std::move(loaded);
+    trgDatabasePath = path;
+    return true;
 }
 
 void executeBlock(const std::vector<std::string>& program, std::size_t begin, std::size_t end,
@@ -2808,6 +2906,7 @@ void executeBlock(const std::vector<std::string>& program, std::size_t begin, st
                 tokens[1].front() == '(' && tokens[1].back() == ')') {
                 const std::string library = lower(tokens[1]);
                 if (library == "(files)") { filesEnabled = true; appendOutput("TRG files library enabled.\r\n"); continue; }
+                if (library == "(database)" || library == "(db)") { databaseEnabled = true; appendOutput("TRG Database library enabled.\\r\\n"); continue; }
                 if (library == "(json)") { jsonEnabled = true; appendOutput("TRG JSON library enabled.\r\n"); continue; }
                 if (library == "(web)") { webEnabled = true; appendOutput("TRG WebAssembly commands enabled.\r\n"); continue; }
                 if (library == "(collision)") { collisionEnabled = true; appendOutput("TRG collision helpers enabled.\r\n"); continue; }
@@ -2816,7 +2915,7 @@ void executeBlock(const std::vector<std::string>& program, std::size_t begin, st
                 if (library == "(controls)") { initializeControls(variables, types); continue; }
                 if (library == "(network)") { networkEnabled = true; appendOutput("TRG network library enabled.\\r\\n"); continue; }
                 if (library == "(all)") {
-                    filesEnabled = jsonEnabled = webEnabled = collisionEnabled = networkEnabled = true;
+                    filesEnabled = jsonEnabled = databaseEnabled = webEnabled = collisionEnabled = networkEnabled = true;
                     initializeControls(variables, types);
                     manualMode = true;
                     uiMode = true;
@@ -2874,6 +2973,7 @@ void executeBlock(const std::vector<std::string>& program, std::size_t begin, st
             LibraryState runLibraries;
             scanLibraries(runProgram, runLibraries);
             filesEnabled = filesEnabled || runLibraries.files;
+            databaseEnabled = databaseEnabled || runLibraries.database;
             jsonEnabled = jsonEnabled || runLibraries.json;
             webEnabled = webEnabled || runLibraries.web;
             collisionEnabled = collisionEnabled || runLibraries.collision;
@@ -2891,6 +2991,139 @@ void executeBlock(const std::vector<std::string>& program, std::size_t begin, st
         }
 
         
+        if (cmd == "database" || cmd == "db" || cmd == "table" || cmd == "record" || cmd == "query" || cmd == "sql") {
+            if (!databaseEnabled) { reportError(i + 1, "database commands need add (database)"); continue; }
+            const std::string action = tokens.size() > 1 ? lower(tokens[1]) : "";
+            std::string dbError;
+            if (cmd == "database" || cmd == "db") {
+                if (action == "open" && tokens.size() == 3) {
+                    bool validPath = false;
+                    const auto path = projectFilePath(valueFor(tokens[2], variables), validPath);
+                    if (!validPath) { reportError(i + 1, "database path must stay inside the TRG project folder", tokens[2]); continue; }
+                    if (std::filesystem::exists(path)) {
+                        if (!loadTrgDatabase(path, dbError)) { reportError(i + 1, dbError, tokens[2]); continue; }
+                    } else {
+                        trgDatabaseTables.clear(); trgDatabasePath = path;
+                        if (!saveTrgDatabase(dbError)) { reportError(i + 1, dbError, tokens[2]); continue; }
+                    }
+                    appendOutput("Database opened: " + path.filename().u8string() + "\r\n");
+                } else if (action == "save" && tokens.size() == 2) {
+                    if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                    else appendOutput("Database saved.\r\n");
+                } else if (action == "close" && tokens.size() == 2) {
+                    trgDatabaseTables.clear(); trgDatabasePath.clear(); appendOutput("Database closed.\r\n");
+                } else if (action == "tables" && tokens.size() == 2) {
+                    std::vector<std::string> names;
+                    for (const auto& item : trgDatabaseTables) names.push_back(item.first);
+                    std::sort(names.begin(), names.end());
+                    for (const auto& name : names) appendOutput(name + "\r\n");
+                    variables["database_table_count"] = static_cast<double>(names.size()); types["database_table_count"] = "num";
+                } else reportError(i + 1, "use database open FILE, database save, database close, or database tables");
+                continue;
+            }
+            if (trgDatabasePath.empty()) { reportError(i + 1, "open a database first with database open FILE"); continue; }
+            if (cmd == "table") {
+                if (action == "create" && tokens.size() >= 4) {
+                    const std::string name = valueFor(tokens[2], variables);
+                    if (!validName(name) || trgDatabaseTables.count(name)) { reportError(i + 1, "table name is invalid or already exists", name); continue; }
+                    TrgDatabaseTable table; bool valid = true;
+                    for (std::size_t n = 3; n < tokens.size(); ++n) {
+                        const std::string column = valueFor(tokens[n], variables);
+                        if (!validName(column) || std::find(table.columns.begin(), table.columns.end(), column) != table.columns.end()) { valid = false; break; }
+                        table.columns.push_back(column);
+                    }
+                    if (!valid) { reportError(i + 1, "table columns must be unique valid names"); continue; }
+                    trgDatabaseTables.emplace(name, std::move(table));
+                    if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                    else appendOutput("Created table " + name + ".\r\n");
+                } else if (action == "delete" && tokens.size() == 3) {
+                    if (!trgDatabaseTables.erase(valueFor(tokens[2], variables))) reportError(i + 1, "unknown table", tokens[2]);
+                    else if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                } else if (action == "count" && tokens.size() == 4 && validName(tokens[3])) {
+                    const auto found = trgDatabaseTables.find(valueFor(tokens[2], variables));
+                    if (found == trgDatabaseTables.end()) { reportError(i + 1, "unknown table", tokens[2]); continue; }
+                    variables[tokens[3]] = static_cast<double>(found->second.rows.size()); types[tokens[3]] = "num";
+                } else reportError(i + 1, "use table create NAME COLUMN... | table delete NAME | table count NAME RESULT");
+                continue;
+            }
+            if (cmd == "record") {
+                if (action == "add" && tokens.size() >= 5 && (tokens.size() - 3) % 2 == 0) {
+                    const auto found = trgDatabaseTables.find(valueFor(tokens[2], variables));
+                    if (found == trgDatabaseTables.end()) { reportError(i + 1, "unknown table", tokens[2]); continue; }
+                    std::vector<std::string> row(found->second.columns.size()); bool valid = true;
+                    for (std::size_t n = 3; n + 1 < tokens.size(); n += 2) {
+                        const auto col = databaseColumnIndex(found->second, valueFor(tokens[n], variables));
+                        if (col == found->second.columns.size()) { valid = false; break; }
+                        row[col] = valueFor(tokens[n + 1], variables);
+                    }
+                    if (!valid) { reportError(i + 1, "record contains an unknown field", tokens[2]); continue; }
+                    found->second.rows.push_back(std::move(row));
+                    if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                    else { variables["last_record"] = static_cast<double>(found->second.rows.size() - 1); types["last_record"] = "num"; }
+                } else if (action == "get" && tokens.size() == 6 && validName(tokens[5])) {
+                    const auto found = trgDatabaseTables.find(valueFor(tokens[2], variables)); double index = 0;
+                    if (found == trgDatabaseTables.end() || !parseNumber(valueFor(tokens[3], variables), index) || index < 0 ||
+                        index >= (found == trgDatabaseTables.end() ? 0.0 : static_cast<double>(found->second.rows.size())) || std::floor(index) != index) {
+                        reportError(i + 1, "record get needs a valid table and row index"); continue;
+                    }
+                    const auto col = databaseColumnIndex(found->second, valueFor(tokens[4], variables));
+                    if (col == found->second.columns.size()) { reportError(i + 1, "unknown record field", tokens[4]); continue; }
+                    variables[tokens[5]] = found->second.rows[static_cast<std::size_t>(index)][col]; types[tokens[5]] = "word";
+                } else if (action == "update" && tokens.size() == 6) {
+                    const auto found = trgDatabaseTables.find(valueFor(tokens[2], variables)); double index = 0;
+                    if (found == trgDatabaseTables.end() || !parseNumber(valueFor(tokens[3], variables), index) || index < 0 ||
+                        index >= (found == trgDatabaseTables.end() ? 0.0 : static_cast<double>(found->second.rows.size())) || std::floor(index) != index) {
+                        reportError(i + 1, "record update needs a valid table and row index"); continue;
+                    }
+                    const auto col = databaseColumnIndex(found->second, valueFor(tokens[4], variables));
+                    if (col == found->second.columns.size()) { reportError(i + 1, "unknown record field", tokens[4]); continue; }
+                    found->second.rows[static_cast<std::size_t>(index)][col] = valueFor(tokens[5], variables);
+                    if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                } else if (action == "delete" && tokens.size() == 4) {
+                    const auto found = trgDatabaseTables.find(valueFor(tokens[2], variables)); double index = 0;
+                    if (found == trgDatabaseTables.end() || !parseNumber(valueFor(tokens[3], variables), index) || index < 0 ||
+                        index >= (found == trgDatabaseTables.end() ? 0.0 : static_cast<double>(found->second.rows.size())) || std::floor(index) != index) {
+                        reportError(i + 1, "record delete needs a valid table and row index"); continue;
+                    }
+                    found->second.rows.erase(found->second.rows.begin() + static_cast<std::ptrdiff_t>(index));
+                    if (!saveTrgDatabase(dbError)) reportError(i + 1, dbError);
+                } else reportError(i + 1, "use record add TABLE FIELD VALUE... | record get TABLE INDEX FIELD RESULT | record update TABLE INDEX FIELD VALUE | record delete TABLE INDEX");
+                continue;
+            }
+            if (cmd == "query" || cmd == "sql") {
+                const bool sqlMode = cmd == "sql";
+                const std::size_t tableAt = sqlMode ? 3 : 1;
+                const std::size_t fieldAt = sqlMode ? 5 : 2;
+                const std::size_t opAt = fieldAt + 1, valueAt = fieldAt + 2, resultAt = sqlMode ? 9 : 5;
+                if ((sqlMode && (tokens.size() != 10 || action != "select" || lower(tokens[2]) != "from" ||
+                                 lower(tokens[4]) != "where" || lower(tokens[8]) != "into")) ||
+                    (!sqlMode && tokens.size() != 6) || resultAt >= tokens.size() || !validName(tokens[resultAt])) {
+                    reportError(i + 1, sqlMode ? "use sql select from TABLE where FIELD OP VALUE into RESULT" : "use query TABLE FIELD OP VALUE RESULT"); continue;
+                }
+                const auto found = trgDatabaseTables.find(valueFor(tokens[tableAt], variables));
+                if (found == trgDatabaseTables.end()) { reportError(i + 1, "unknown table", tokens[tableAt]); continue; }
+                const auto col = databaseColumnIndex(found->second, valueFor(tokens[fieldAt], variables));
+                if (col == found->second.columns.size()) { reportError(i + 1, "unknown query field", tokens[fieldAt]); continue; }
+                const std::string op = tokens[opAt], wanted = valueFor(tokens[valueAt], variables);
+                if (op != "=" && op != "!=" && op != ">" && op != "<" && op != ">=" && op != "<=") {
+                    reportError(i + 1, "unsupported query operator", op); continue;
+                }
+                std::vector<std::string> matches;
+                for (std::size_t n = 0; n < found->second.rows.size(); ++n) {
+                    const std::string actual = found->second.rows[n][col]; double a = 0, b = 0;
+                    const bool numeric = parseNumber(actual, a) && parseNumber(wanted, b);
+                    const bool match = op == "=" ? actual == wanted : op == "!=" ? actual != wanted :
+                        op == ">" ? (numeric ? a > b : actual > wanted) : op == "<" ? (numeric ? a < b : actual < wanted) :
+                        op == ">=" ? (numeric ? a >= b : actual >= wanted) : (numeric ? a <= b : actual <= wanted);
+                    if (match) matches.push_back(std::to_string(n));
+                }
+                const std::size_t count = matches.size();
+                variables[tokens[resultAt]] = std::move(matches); types[tokens[resultAt]] = "list";
+                variables["query_count"] = static_cast<double>(count); types["query_count"] = "num";
+                continue;
+            }
+        }
+
         if (cmd == "json") {
             if (!jsonEnabled) { reportError(i + 1, "JSON commands need add (json)"); continue; }
             if (tokens.size() >= 2 && lower(tokens[1]) == "read") {
